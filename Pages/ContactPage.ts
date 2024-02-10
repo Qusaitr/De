@@ -16,9 +16,10 @@ export class ContactPage {
 
     constructor(page: Page) {
         this.page = page;
-        this.headingNewMessageLabel = page.getByRole("heading", {
-            name: "New message",
-        });
+        this.headingNewMessageLabel = page.locator("(//div[@class='modal-header'])[1]")
+        // this.headingNewMessageLabel = page.getByRole("heading", {
+        //     name: "New message",
+        // });
         this.contactEmailInput = page.locator("#recipient-email");
         this.contactEmailInputLabel = page.getByText("Contact Email:");
         this.contactNameInput = page.locator("#recipient-name");
@@ -47,6 +48,8 @@ export class ContactPage {
         await expect(this.contactMessageTextareaLabel).toBeVisible();
         await expect(this.contactCloseButton).toBeVisible();
         await expect(this.contactCloseXButton).toBeVisible();
-        await this.contactCloseXButton.click();
+    }
+    async ClickOnExitButton(){
+        await this.contactCloseXButton.click({timeout:1000});
     }
 }

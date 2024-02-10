@@ -29,7 +29,6 @@ class AboutUsPage {
         }
         this.closeXButton.click();
     }
-
-
+    
 }
 export {AboutUsPage}

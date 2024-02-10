@@ -3,8 +3,8 @@ import { Page, Locator, expect } from "@playwright/test";
 class ProductPage {
     readonly page: Page;
     productName: string;
-    private _productLink: Locator; // Now a static locator, initialized in the constructor
-    private _productHeading: Locator;
+    private product_Link: Locator;
+    private product_Heading: Locator;
     readonly addToCartButton: Locator;
     readonly cartLink: Locator;
     readonly productImage: Locator;
@@ -13,8 +13,8 @@ class ProductPage {
     constructor(page: Page, productName: string) {
         this.page = page;
         this.productName = productName;
-        this._productLink = page.locator(`a:has-text("${productName}")`);
-        this._productHeading = page.getByRole("heading", { name: productName });
+        this.product_Link = page.locator(`a:has-text("${productName}")`);
+        this.product_Heading = page.getByRole("heading", { name: productName });
         this.addToCartButton = page.getByRole("link", { name: "Add to cart" });
         this.cartLink = page.getByRole("link", { name: "Cart", exact: true });
         this.productImage = page.locator("#imgp img");
@@ -23,7 +23,7 @@ class ProductPage {
 
     async verifyProductIsOpenAndAllFieldsAreVisible() {
         const elements: Locator[] = [
-            this._productHeading,
+            this.product_Heading,
             this.productImage,
             this.productDescription,
             this.addToCartButton,

@@ -1,6 +1,5 @@
 import { Page, Locator, expect } from "@playwright/test";
-import { popuUpMessage } from "../ReusableMethod/Methods";
-import { UrlExt} from "../Common/AppData"
+import {UrlExt, OrderData_info, ExpectedPopupMessages} from "../Common/AppData"
 
 
 class CartPage {
@@ -33,8 +32,7 @@ class CartPage {
     readonly pageProducGridX: Locator;
     readonly placeOrderPopupTextboxName: Locator;
     readonly thankYouMessageLocator: Locator;
-    readonly popupAmount: Locator;
-    readonly popupName: Locator;
+    readonly popupMessageInfo : Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -47,12 +45,8 @@ class CartPage {
         this.deleteButton = page.getByRole("link", { name: "Delete" });
         this.purchaseButton = page.locator('button:has-text("Place Order")');
         this.totalAmount = page.locator("#totalp");
-        this.placeOrderButtonCartPage = page.getByRole("button", {
-            name: "Place Order",
-        });
-        this.placeOrderPopupHeading = page.getByRole("heading", {
-            name: "Place order",
-        });
+        this.placeOrderButtonCartPage = page.getByRole("button", { name: "Place Order" });
+        this.placeOrderPopupHeading = page.getByRole("heading", { name: "Place order" });
         this.placeOrderPopupTotal = page.getByText("Total:");
         this.placeOrderPopupLabelName = page.getByText("Name:", { exact: true });
         this.placeOrderPopupTextboxName = page.getByLabel("Name:", { exact: true });
@@ -66,20 +60,13 @@ class CartPage {
         this.placeOrderPopupTextboxMonth = page.getByLabel("Month:");
         this.placeOrderPopupLabelYear = page.getByText("Year:");
         this.placeOrderPopupTextboxYear = page.getByLabel("Year:");
-        this.placeOrderPopupXCloseButton = page
-            .getByLabel("Place order")
-            .getByLabel("Close");
-        this.placeOrderPopupPurchaseButton = page.getByRole("button", {
-            name: "Purchase",
-        });
+        this.placeOrderPopupXCloseButton = page.getByLabel("Place order").getByLabel("Close");
+        this.placeOrderPopupPurchaseButton = page.getByRole("button", {name: "Purchase"});
         this.placeOrderPopupCloseButton = page
             .getByLabel("Place order")
             .getByText("Close");
-        this.thankYouMessageLocator = page.locator(
-            'h2:has-text("Thank you for your purchase!")'
-        );
-        this.popupAmount = page.locator("p.lead.text-muted");
-        this.popupName = page.locator("p.lead.text-muted >> text=/Name: .+/");
+        this.thankYouMessageLocator = page.locator('h2:has-text("Thank you for your purchase!")');
+        this.popupMessageInfo = page.locator('p.lead.text-muted');
     }
 
     async verifyVisabilityAllElementsOnPopupPlaceOrderPage() {
@@ -107,6 +94,12 @@ class CartPage {
             await expect(element).toBeVisible();
         }
     }
+    async checkUrlExtension() {
+        // Get the current URL
+        const currentUrl = this.page.url();
+        // Check if the current URL contains the expected extension
+        expect(currentUrl).toContain(UrlExt.YOUR_CART_PAGE_URL);
+    }
 
     async verifyVisabilityAllElementsInCartPage() {
         const elementsToVerifyVisible: Locator[] = [
@@ -126,25 +119,6 @@ class CartPage {
         const productLocator = this.page.getByRole("cell", { name: productName });
         await expect(productLocator).toBeVisible({ timeout: 50000 });
     }
-    async verifyIsthereAnyProductInCart(productName: string) {
-        await this.page.waitForLoadState("networkidle");
-        const productLocators = this.page.getByRole("cell", { name: productName });
-        const count = await productLocators.count();
-        expect(count).toBeGreaterThan(0);
-    }
-
-    async verifyDialogPopupLoginMessageWrongCredentials() {
-        await popuUpMessage(this.page, "Please fill out Name and Creditcard.");
-    }
-
-    async verifyProductRemoved(productName: string) {
-        const productLocator = this.page.getByRole("cell", { name: productName });
-        await expect(productLocator).toBeHidden();
-    }
-    async removeProductFromCart(productName: string) {
-        await this.deleteButton.click();
-        await this.verifyProductRemoved(productName);
-    }
 
     async verifyTotalAmount(expectedTotal: number) {
         const totalText = await this.totalAmount.textContent();
@@ -154,12 +128,12 @@ class CartPage {
 
     async generateRandomOrderData() {
         return {
-            name: "Test",
-            country: "Test",
-            city: "Test",
-            card: "01235426545564",
-            month: "01",
-            year: "1970",
+            name: OrderData_info.D_NAME,
+            country: OrderData_info.D_COUNTRY,
+            city: OrderData_info.D_CITY,
+            card: OrderData_info.D_CARD,
+            month: OrderData_info.D_MONTH,
+            year: OrderData_info.D_YEAR,
         };
     }
 
@@ -173,6 +147,10 @@ class CartPage {
         await this.placeOrderPopupTextboxYear.fill(orderData.year);
         return orderData;
     }
+    async GoToCartPage(){
+        await this.placeOrderButtonCartPage.click({timeout:10000});
+        await this.verifyVisabilityAllElementsOnPopupPlaceOrderPage();
+    }
 
     async getTextContent(locator, regex) {
         const text = await locator.textContent();
@@ -180,27 +158,21 @@ class CartPage {
     }
 
     async placeOrderWithRandomData(expectedTotal: number) {
-        await this.placeOrderButtonCartPage.click();
+        //await this.placeOrderButtonCartPage.click();
         const orderData = await this.fillData();
         await this.placeOrderPopupPurchaseButton.click();
-        await expect(this.thankYouMessageLocator).toContainText(
-            "Thank you for your purchase!"
-        );
-        const amountFromPopup =
-            parseFloat(
-                await this.getTextContent(this.popupAmount, /Amount: (\d+) USD/)
-            ) || 0;
-        const nameFromPopup =
-            (await this.getTextContent(this.popupName, /Name: (.+?)(?=Date)/)) || "";
+        await expect(this.thankYouMessageLocator).toContainText(ExpectedPopupMessages.PurchaceMessage);
+        const amountFromPopup = parseFloat(await this.getTextContent(this.popupMessageInfo, /Amount: (\d+) USD/)) || 0;
+        const cardNumberPopup = (await this.getTextContent(this.popupMessageInfo, /Card Number: (\d+)/)) || "";
+        const nameFromPopup = (await this.getTextContent(this.popupMessageInfo, /(?<=Name:)(.+?)(?=Date)/)) || "";
+        const DateFormatPopup = (await this.getTextContent(this.popupMessageInfo, /Date: (.*)/)) || "";
 
+
+        //Validate Confirmation Data
         expect(expectedTotal).toBe(amountFromPopup);
-        expect(nameFromPopup).toBe(orderData.name);
-    }
-    async checkUrlExtension() {
-        // Get the current URL
-        const currentUrl = this.page.url();
-        // Check if the current URL contains the expected extension
-        expect(currentUrl).toContain(UrlExt.YOUR_CART_PAGE_URL);
+        expect(nameFromPopup.trim()).toBe(OrderData_info.D_NAME);
+        expect(cardNumberPopup).toBe(OrderData_info.D_CARD);
+        expect(DateFormatPopup).toContain(OrderData_info.D_MONTH&&OrderData_info.D_YEAR);
     }
 }
 export { CartPage };

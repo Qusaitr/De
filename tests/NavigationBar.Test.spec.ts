@@ -43,6 +43,7 @@ test.describe('Test Navigation Bar functionality', async () => {
         });
         await test.step('Verify that contact fields are visible', async () => {
             await contactPage.ValidateAllfields();
+            await contactPage.ClickOnExitButton();
         });
         await test.step('Navigate To About us', async () => {
             await navigationBar.navigateToAboutUs();

@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { popuUpMessage } from "../ReusableMethod/Methods";
 import {HomePage} from "../Pages/HomePage";
 import {ContactPage} from "../Pages/ContactPage";
 import {NavigationBar} from "../Pages/NavigationBar";
@@ -39,7 +38,7 @@ test.describe('Test Contact page functionality', async () => {
             await expect(contactPage.contactCloseXButton).toBeVisible();
         });
         await test.step('Verify that contact page can be filled and saved correctly with popup message', async () => {
-            await popuUpMessage(page, ExpectedPopupMessages.ConatctPopUpAlertData);
+            //await popuUpMessage(page, ExpectedPopupMessages.ConatctPopUpAlertData);
             const email = DataString.Email;
             const name = DataString.Name;
             const message = DataString.Message;

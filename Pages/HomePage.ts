@@ -1,8 +1,6 @@
 import { Page, Locator, expect } from "@playwright/test";
 import { verifyNextAndPreviousButton } from "../ReusableMethod/Methods";
-import { CartPage } from "./CartPage";
-import { ProductPage } from "./ProductPage";
-import { NavigationBar } from "./NavigationBar";
+import { UrlExt } from "../Common/AppData";
 
 class HomePage {
     readonly page: Page;
@@ -39,9 +37,7 @@ class HomePage {
     }
 
     async goTo() {
-        await this.page.goto("https://www.demoblaze.com/", {
-            waitUntil: "networkidle",
-        });
+        await this.page.goto(UrlExt.BASE_URL, {waitUntil: "networkidle",});
     }
     async verifyCurrentURL(expectedURL: string) {
         await expect(this.page).toHaveURL(expectedURL);
@@ -86,18 +82,6 @@ class HomePage {
             expectedSlides
         );
     }
-    async verifyPreviousButton() {
-        const expectedSlides = [
-            { src: "Samsung1.jpg", alt: "First slide" },
-            { src: "iphone1.jpg", alt: "Third slide" },
-            { src: "nexus1.jpg", alt: "Second slide" },
-        ];
-        await verifyNextAndPreviousButton(
-            this.page,
-            this.previousButton,
-            expectedSlides
-        );
-    }
 
     async waitForProduct(productName: string) {
         const link = this.page.locator(`a.hrefch`, { hasText: productName });
@@ -109,27 +93,6 @@ class HomePage {
         return this.page.$$eval(".card-title a", (elements) =>
             elements.map((e) => (e.textContent ? e.textContent.trim() : ""))
         );
-    }
-
-    //connectedMethods
-    async selectOneItemFromPageAndAddItToCart(productName: string) {
-        const cartPage = new CartPage(this.page);
-        const productPage = new ProductPage(this.page, productName);
-        const navigationBar = new NavigationBar(this.page);
-        await this.goTo();
-        await this.selectProduct(productName);
-        await productPage.addProductToCart();
-        await navigationBar.navigateToCart();
-        await cartPage.verifyProductInCart(productName);
-    }
-    async selectOneItemFromCategoriesAndAddItToCart(productName: string) {
-        const cartPage = new CartPage(this.page);
-        const productPage = new ProductPage(this.page, productName);
-        const navigationBar = new NavigationBar(this.page);
-        await this.selectProduct(productName);
-        await productPage.addProductToCart();
-        await navigationBar.navigateToCart();
-        await cartPage.verifyProductInCart(productName);
     }
 }
 export { HomePage }
